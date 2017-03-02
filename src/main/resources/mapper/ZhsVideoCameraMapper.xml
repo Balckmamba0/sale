@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.bbtree.videoapi.core.dao.ZhsVideoCameraMapper" >
+  <resultMap id="BaseResultMap" type="com.bbtree.videoapi.core.model.ZhsVideoCamera" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="camera_name" property="cameraName" jdbcType="VARCHAR" />
+    <result column="plan_code" property="planCode" jdbcType="VARCHAR" />
+    <result column="camera_sn" property="cameraSn" jdbcType="VARCHAR" />
+    <result column="clarity" property="clarity" jdbcType="INTEGER" />
+    <result column="voice_status" property="voiceStatus" jdbcType="INTEGER" />
+    <result column="firmware_version" property="firmwareVersion" jdbcType="VARCHAR" />
+    <result column="agency_id" property="agencyId" jdbcType="INTEGER" />
+    <result column="school_id" property="schoolId" jdbcType="INTEGER" />
+    <result column="add_time" property="addTime" jdbcType="TIMESTAMP" />
+    <result column="add_person" property="addPerson" jdbcType="VARCHAR" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="first_add_time" property="firstAddTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, camera_name, camera_sn, clarity, voice_status, firmware_version, agency_id, school_id, 
+    add_time, add_person, update_time,first_add_time,plan_code
+  </sql>
+  <select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from zhs_video_camera
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <!--通过摄像头的SN查询摄像头所属学校和代理商-->
+  <select id="selectByCameraSn" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select
+    agency_id,school_id,update_time,first_add_time
+    from zhs_video_camera
+    where camera_sn = #{cameraSn,jdbcType=VARCHAR} limit 1
+  </select>
+  <delete id="deleteById" parameterType="java.lang.Integer" >
+    delete from zhs_video_camera
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <!--为园所解绑摄像头-->
+  <update id="unBindCameraFromSchool">
+    update zhs_video_camera
+    set school_id=-100,update_time=#{updateTime}
+    where camera_sn = #{cameraSn}
+  </update>
+  <!-- 为园所绑定摄像头-->
+  <update id="bindCameraToSchool" parameterType="com.bbtree.videoapi.core.model.ZhsVideoCamera">
+    update zhs_video_camera
+    set school_id=#{schoolId},update_time=#{updateTime},plan_code=#{planCode}
+    <if test="firstAddTime != null" >
+      ,first_add_time=#{firstAddTime}
+    </if>
+    where camera_sn = #{cameraSn} and agency_id=#{agencyId}
+  </update>
+  <insert id="insert" parameterType="com.bbtree.videoapi.core.model.ZhsVideoCamera" >
+    insert into zhs_video_camera
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="firstAddTime != null" >
+        first_add_time,
+      </if>
+      <if test="planCode != null" >
+        plan_code,
+      </if>
+      <if test="cameraName != null" >
+        camera_name,
+      </if>
+      <if test="cameraSn != null" >
+        camera_sn,
+      </if>
+      <if test="clarity != null" >
+        clarity,
+      </if>
+      <if test="voiceStatus != null" >
+        voice_status,
+      </if>
+      <if test="firmwareVersion != null" >
+        firmware_version,
+      </if>
+      <if test="agencyId != null" >
+        agency_id,
+      </if>
+      <if test="schoolId != null" >
+        school_id,
+      </if>
+      <if test="addTime != null" >
+        add_time,
+      </if>
+      <if test="addPerson != null" >
+        add_person,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="firstAddTime != null" >
+        #{firstAddTime,jdbcType=VARCHAR},
+      </if>
+      <if test="planCode != null" >
+        #{planCode,jdbcType=VARCHAR},
+      </if>
+      <if test="cameraName != null" >
+        #{cameraName,jdbcType=VARCHAR},
+      </if>
+      <if test="cameraSn != null" >
+        #{cameraSn,jdbcType=VARCHAR},
+      </if>
+      <if test="clarity != null" >
+        #{clarity,jdbcType=INTEGER},
+      </if>
+      <if test="voiceStatus != null" >
+        #{voiceStatus,jdbcType=INTEGER},
+      </if>
+      <if test="firmwareVersion != null" >
+        #{firmwareVersion,jdbcType=VARCHAR},
+      </if>
+      <if test="agencyId != null" >
+        #{agencyId,jdbcType=INTEGER},
+      </if>
+      <if test="schoolId != null" >
+        #{schoolId,jdbcType=INTEGER},
+      </if>
+      <if test="addTime != null" >
+        #{addTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="addPerson != null" >
+        #{addPerson,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateById" parameterType="com.bbtree.videoapi.core.model.ZhsVideoCamera" >
+    update zhs_video_camera
+    <set >
+      <if test="cameraName != null" >
+        camera_name = #{cameraName,jdbcType=VARCHAR},
+      </if>
+      <if test="cameraSn != null" >
+        camera_sn = #{cameraSn,jdbcType=VARCHAR},
+      </if>
+      <if test="clarity != null" >
+        clarity = #{clarity,jdbcType=INTEGER},
+      </if>
+      <if test="voiceStatus != null" >
+        voice_status = #{voiceStatus,jdbcType=INTEGER},
+      </if>
+      <if test="firmwareVersion != null" >
+        firmware_version = #{firmwareVersion,jdbcType=VARCHAR},
+      </if>
+      <if test="agencyId != null" >
+        agency_id = #{agencyId,jdbcType=INTEGER},
+      </if>
+      <if test="schoolId != null" >
+        school_id = #{schoolId,jdbcType=INTEGER},
+      </if>
+      <if test="addTime != null" >
+        add_time = #{addTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="addPerson != null" >
+        add_person = #{addPerson,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="planCode != null" >
+        plan_code = #{planCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <!--统计园所已绑定摄像头集合-->
+  <select id="selectTotalCameraList" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from zhs_video_camera
+    WHERE 1=1
+    <if test="schoolId!=null">
+      and school_id=#{schoolId,jdbcType=INTEGER}
+    </if>
+    <if test="agencyId!=null">
+      and agency_id=#{agencyId,jdbcType=INTEGER}
+    </if>
+    ORDER BY camera_sn
+  </select>
+  <!--分页查询园所已绑定摄像头-->
+  <select id="queryPageSchoolCameraList" resultType="com.bbtree.videoapi.core.model.CameraList">
+	    select
+	    C.camera_name cameraName,C.camera_sn cameraSn,C.clarity,C.voice_status voiceStatus
+	    from zhs_video_camera C
+        WHERE C.school_id=#{vo.schoolId,jdbcType=INTEGER} and
+        C.agency_id=#{vo.agencyId,jdbcType=INTEGER} and
+        C.plan_code=#{vo.planCode,jdbcType=VARCHAR}
+        ORDER BY update_time DESC
+    </select>
+
+    <select id="queryPage" resultMap="BaseResultMap" parameterType="com.bbtree.videoapi.core.model.ZhsVideoCamera" >
+	    select
+	    <include refid="Base_Column_List" />
+	    from zhs_video_camera
+    </select>
+
+    <!-- 根据学校ID和摄像机Sn查询摄像机信息 -->
+    <select id="selectBySchoolIdAndCameraSn" resultMap="BaseResultMap">
+     	select 
+	    <include refid="Base_Column_List" />
+	    from zhs_video_camera
+	    where school_id = #{schoolId} and camera_sn = #{cameraSn}
+	    limit 1
+    </select>
+    
+    <!-- 分页查询摄像机列表 -->
+    <select id="queryPageNoCameraList" resultType="com.bbtree.videoapi.core.model.CameraList">
+    	SELECT C.camera_name cameraName,C.camera_sn cameraSn,C.clarity,C.voice_status voiceStatus
+		FROM zhs_video_camera C
+		<if test="map.role == 2 and map.classIdList != null" >
+		JOIN zhs_video_camera_class_relatives CR ON C.camera_sn = CR.camera_sn
+		</if>
+		WHERE C.school_id = #{map.schoolId}
+		<if test="map.role == 2 and map.classIdList != null" >
+			AND CR.class_id in 
+			<foreach collection="map.classIdList" item="listItem" open="(" close=")" separator=",">
+	    		#{listItem}
+			</foreach>
+		</if>
+		order by C.add_time desc
+    </select>
+    
+    <!-- 查询班级下摄像机 -->
+    <select id="queryCameraList" resultMap="BaseResultMap">
+    	select c.camera_sn,c.camera_name from zhs_video_camera c 
+		join zhs_video_camera_class_relatives ccr on c.camera_sn = ccr.camera_sn
+		where c.school_id = #{schoolId}
+		and ccr.class_id in (#{classId},0)
+    </select>
+    
+    <select id="selectCameraListBySchoolIdAndCameraSns" resultType="com.bbtree.videoapi.core.model.CameraList">
+    	select camera_name cameraName,camera_sn cameraSn,clarity,voice_status voiceStatus
+		from zhs_video_camera 
+		where school_id = #{schoolId}
+		<if test="cameraSnList != null and cameraSnList.size() > 0" >
+			and camera_sn in 
+			<foreach collection="cameraSnList" item="listItem" open="(" close=")" separator=",">
+	    		${listItem}
+			</foreach>
+		</if>
+    </select>
+    
+    
+    </mapper>

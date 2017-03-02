@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+    <plugins>
+        <!-- 分页插件 -->
+        <plugin interceptor="com.bbtree.framework.page.PaginationSupportHandlerInterceptor">
+            <property name="pageSqlId" value=".*queryPage.*"/>
+            <property name="limitSqlId" value=".*queryPageNo.*" />
+            <property name="pageCacheSqlId" value=".*queryPageCache.*" />
+        </plugin>
+        <plugin interceptor="com.bbtree.cat.mybatis.CatMybatisInterceptor"></plugin>
+    </plugins>
+</configuration>
