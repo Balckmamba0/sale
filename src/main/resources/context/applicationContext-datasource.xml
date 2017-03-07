@@ -5,7 +5,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
     <!--master -->
-    <bean id="masterDateSource" class="com.alibaba.druid.pool.DruidDataSource"
+    <bean id="masterDataSource" class="com.alibaba.druid.pool.DruidDataSource"
           init-method="init" destroy-method="close">
         <property name="url" value="${jdbc.url}" />
         <property name="username" value="${jdbc.username}" />
@@ -34,7 +34,7 @@
     </bean>
 
     <!--slave -->
-    <bean id="slaveDateSource" class="com.alibaba.druid.pool.DruidDataSource"
+    <bean id="slaveDataSource" class="com.alibaba.druid.pool.DruidDataSource"
           init-method="init" destroy-method="close">
         <property name="url" value="${slave.jdbc.url}" />
         <property name="username" value="${slave.jdbc.username}" />
@@ -72,13 +72,13 @@
         </property>
         <property name="targetDataSources">
             <map key-type="java.lang.String">
-                <entry key="${jdbc.datasource.name}" value-ref="masterDateSource"/>
-                <entry key="${slave.jdbc.datasource.name}" value-ref="slaveDateSource"/>
+                <entry key="${jdbc.datasource.name}" value-ref="masterDataSource"/>
+                <entry key="${slave.jdbc.datasource.name}" value-ref="slaveDataSource"/>
             </map>
         </property>
     </bean>
 
-    <!-- AOP动态切换 -->
+     <!--AOP动态切换-->
     <bean id="dataSourceAspect" class="com.ws.business.dataSource.DataSourceAspect" />
     <aop:config>
         <aop:aspect id="aspect" ref="dataSourceAspect">

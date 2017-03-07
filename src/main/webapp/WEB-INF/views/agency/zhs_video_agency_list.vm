@@ -1,0 +1,389 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+#parse("/macros/static-head.vm")
+<script type="text/javascript">
+    // 查询
+    function queryByWhere(){
+        $("#queryForm").submit();
+    }
+
+    $(function(){
+        $('.openbg').hide();
+        $('.openBox2').hide();
+        $(".openBox3").hide();
+
+        $('#cancle').click(function(){
+            clearBox();
+        });
+
+        $('#cancleButton').click(function(){
+            $(".openBox3").hide();
+        });
+
+        $('#close').click(function(){
+            clearBox();
+        });
+
+        $('#confirm').click(function(){
+            var agencyId = $("#agencyIdBox").val();
+            var isOpenService = $("#isOpenServiceBox").val();
+            var isOfflineChargeOpen = $("#isOfflineChargeOpenBox").val();
+            if (isOpenService == 0 && agencyId != null && ''!= agencyId) {
+                toUpdate(agencyId, isOpenService, isOfflineChargeOpen);
+            }else if (isOfflineChargeOpen == 0 && agencyId != null && ''!= agencyId) {
+                toUpdate(agencyId, isOpenService, isOfflineChargeOpen);
+            }
+            else  {
+                window.location.href = "/video/v4/manager/agency/agencyList";
+            }
+            clearBox();
+        });
+
+        $("#provinceId").change(function(){
+            $.ajax({
+                dataType:'json',
+                url:'/video/v4/manager/common/queryArea?provinceId=' + $(this).val(),
+                success: function (result) {
+                    if(result.code == 000){
+                        $("#cityId").html("<option value=''>请选择地区</option>").append(getSelectOptions(result.data, 'cityid', 'city'));
+                    }else{
+//                        alert('失败');
+                    }
+                }
+            })
+        });
+
+        $("#openNew").click(function(){
+            $(".openBox3").show();
+            return false;
+        });
+
+        $("#toAddCamerasBtn").click(function(){
+            window.location.href="/video/v4/manager/agency/toAddMuchCameras";
+            return false;
+        });
+
+        jQuery.validator.addMethod("isMobile", function(value, element) {
+            var length = value.length;
+//            var mobile = /^(13[0-9]{9})|(18[0-9]{9})|(14[0-9]{9})|(17[0-9]{9})|(15[0-9]{9})$/;
+//            if(length == 11 && mobile.test(value)){
+//                return true;
+//            }else{
+//                return false;
+//            }
+                return this.optional(element) || (length == 11 );//&& mobile.test(value)
+        }, "请正确填写代理商账号");
+
+        $.extend($.validator.messages, {
+            number: "请输入有效的数字"
+        });
+
+        $("#openAgency").click(function(){
+            // 手机号码验证
+
+            $("#insertForm").validate({
+                ignore: "",
+                rules:{
+                    agencyAccount:{
+                        notblank:true,
+                        number:true,
+                        isMobile:true
+                    }
+                },
+                message:{
+                    agencyAccount:{
+                        notblank:"代理商账号不能为空",
+                        number:"请正确填写代理商账号",
+                        isMobile:"请填写正确代理商账号"
+                    }
+                },errorPlacement: function(error, element){
+                    element.siblings(".errorStyle").empty();
+                    error.appendTo(element.siblings(".errorStyle"));
+                    element.focus();
+                },
+                submitHandler:function(form){
+                    $("#insertForm").ajaxSubmit({
+                        type: "post",
+                        dataType:"json",
+                        url: "/video/v4/manager/agency/insertAgency",
+                        success: function(result){
+                            $(".openBox3").hide();
+                            if(result.code==000){
+                                window.location.href="/video/v4/manager/agency/agencyList";
+                                return false;
+                            }else{
+                                alert(result.msg);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+    });
+
+    function getSelectOptions(data, id, name){
+        var info = '';
+        for(var i = 0; i < data.length; i++){
+            var item = data[i];
+            info = info +  "<option value='" + item[id] + "'>" +  item[name] + '</option>';
+        }
+        return  info;
+    }
+
+    function openService(agencyId,isOpenService,isOfflineChargeOpen) {
+        if(isOpenService >= 0){
+            if(isOpenService == 0){
+                $("#title").text("关闭服务");
+                $("#body").text("关闭后，此代理商在CRM中无法操作园所直播，但幼儿园直播服务仍可正常使用");
+
+                $("#agencyIdBox").val(agencyId);
+                $("#isOpenServiceBox").val(isOpenService);
+                $("#isOfflineChargeOpenBox").val(isOfflineChargeOpen);
+            }else if(isOpenService == 1){
+
+                $("#title").text("开通服务");
+                $("#body").text("开通服务成功");
+
+                $("#agencyIdBox").val(null);
+                $("#isOpenServiceBox").val(null);
+                $("#isOfflineChargeOpenBox").val(null);
+
+                $("#cancle").attr("hidden","hidden");
+            }
+        }
+        if(isOfflineChargeOpen >= 0){
+            if(isOfflineChargeOpen == 1){
+                $("#title").text("开启线下收费");
+                $("#body").text("开启线下收费成功");
+
+                $("#agencyIdBox").val(null);
+                $("#isOpenServiceBox").val(null);
+                $("#isOfflineChargeOpenBox").val(null);
+
+                $("#cancle").attr("hidden","hidden");
+            }else if(isOfflineChargeOpen == 0){
+                $("#title").text("关闭线下收费");
+                $("#body").text("关闭后，此代理商将不能进行线下收费");
+
+                $("#agencyIdBox").val(agencyId);
+                $("#isOpenServiceBox").val(isOpenService);
+                $("#isOfflineChargeOpenBox").val(isOfflineChargeOpen);
+            }
+        }
+        //弹窗展示
+        $('.openbg').show();
+        $('.openBox2').show();
+
+    }
+
+    function clearBox(){
+        $('.openbg').hide();
+        $('.openBox2').hide();
+
+        $("#title").text("");
+        $("#body").text("");
+
+        $("#agencyIdBox").val(null);
+        $("#isOpenServiceBox").val(null);
+        $("#isOfflineChargeOpenBox").val(null);
+    }
+
+    function toUpdate(agencyId,isOpenService,isOfflineChargeOpen){
+        jQuery.ajax({
+            dataType:'json',
+            url:'/video/v4/manager/agency/update',
+            type:"post",
+            data:{agencyId:agencyId,isOpenService:isOpenService,isOfflineChargeOpen:isOfflineChargeOpen},
+            success: function (result) {
+                if(result.code == 000){
+                    if(isOpenService == 1){
+                        openService(agencyId,isOpenService,isOfflineChargeOpen);
+                    }
+                    else if(isOfflineChargeOpen == 1 ){
+                        openService(agencyId,isOpenService,isOfflineChargeOpen);
+                    }
+                    if(isOpenService == 0 || isOfflineChargeOpen == 0){
+
+                        window.location.href="/video/v4/manager/agency/agencyList";
+                    }
+
+
+                    return false;
+                }else{
+                    alert(result.msg);
+                }
+
+            }
+        });
+    }
+
+    function toCameraList(agencyId){
+        window.location.href='/video/v4/manager/camera/cameraList?agencyId='+agencyId;
+    }
+
+</script>
+</head>
+<body>
+<div class="Box">
+    <div class="title">
+        <h2 style="display:inline-block;cursor: pointer;">开通过服务的代理商列表</h2>
+        <h3 style="color: red;display:inline-block">（包括普通代理商主账号、集团代理商主账号、高级销售总监、销售总监、销售经理）</h3>
+    </div>
+    <p class="sysBox clearfix" >
+    </p>
+    <p class="sinesList"> </p>
+    <form action="/video/v4/manager/agency/agencyList" method="post" id="queryForm" name="queryForm">
+
+        <p class="sinesList">
+            <span class="sinesTitle">代理商姓名：</span>
+            <input type="text" name="agencyName" style="width: 160px;" value="$!vo.agencyName" placeholder="请输入代理商姓名"/>
+
+            <span class="sinesTitle">代理商账号：</span>
+            <input type="text" name="agencyAccount"  style="width: 160px;" value="$!vo.agencyAccount" placeholder="请输入代理商账号"/>
+
+##            <span class="sinesTitle">代理商区域：</span>
+##            <select id="provinceId" name="provinceId">
+##                <option value="">请选择省份</option>
+##                #foreach($!province in $!provinces)
+##                    <option value="$!province.provinceid" #if($!{province.provinceid}== $!{vo.provinceId}) selected="selected"#end>$!province.province</option>
+##                #end
+##            </select>
+##            <select id="cityId" name="cityId">
+##                <option value="">请选择地区</option>
+##                #foreach($!city in $!cities)
+##                    <option value="$!city.cityid" #if($!{city.cityid}== $!{vo.cityId}) selected="selected"#end>$!city.city</option>
+##                #end
+##            </select>
+        </p>
+        <p class="sinesList">
+            <span class="sinesTitle">是否已开通服务：</span>
+            <select id="isOpenService" name="isOpenService">
+                <option value="" selected="selected">全部</option>
+                <option value="1" #if($!{vo.isOpenService}==1 )selected="selected" #end>已开通</option>
+                <option value="0" #if($!{vo.isOpenService}==0 )selected="selected" #end>已关闭</option>
+            </select>
+
+            <span class="sinesTitle">是否已关闭线下收费：</span>
+            <select id="isOfflineChargeOpen" name="isOfflineChargeOpen">
+                <option value="" selected="selected">全部</option>
+                <option value="0" #if($!{vo.isOfflineChargeOpen}==0 )selected="selected" #end>已关闭</option>
+                <option value="1" #if($!{vo.isOfflineChargeOpen}==1 )selected="selected" #end>未关闭</option>
+            </select>
+
+            <span class="sinesTitle">SN号：</span>
+            <input type="text" name="cameraSn" style="width: 160px;" value="$!vo.cameraSn" placeholder="请输入摄像头SN号"/>
+
+            <button id="queryBtn" class="btn qb-btn btn_length" onclick="queryByWhere()">查询</button>
+
+            <button id="openNew" class="btn qb-btn btn_length" >新开通代理商</button>
+
+            <button id="toAddCamerasBtn" class="btn qb-btn btn_length" >导入摄像头</button>
+        </p>
+    </form>
+    <div class="sysList">
+        <table class="sec_tab">
+            <thead>
+            <tr>
+                <td>序号</td>
+                <td>代理商姓名</td>
+                <td>代理商账号</td>
+##                <td>代理省份</td>
+##                <td>代理地区</td>
+                <td>是否已开通服务</td>
+                <td>是否已关闭线下收费</td>
+                <td>操作</td>
+            </tr>
+            </thead>
+            <tbody>
+                #set($i=1)
+                #foreach($info in $ps.items)
+                <tr>
+                    <td align="center">$i</td>
+                    <td align="center">$!{info.agencyName}</td>
+                    <td align="center">$!{info.agencyAccount}</td>
+##                    <td align="center">$!{info.provinceName}</td>
+##                    <td align="center">$!{info.cityName}$!{info.areaName}</td>
+                    <td align="center">#if($!{info.isOpenService} == 1)已开通#elseif($!{info.isOpenService} == 0)已关闭#end</td>
+                    <td align="center">#if($!{info.isOfflineChargeOpen} == 0)已关闭#elseif($!{info.isOfflineChargeOpen} == 1)未关闭#end</td>
+                    <td align="center">
+                        #if($!{info.isOpenService} == 1)
+                            <a class="btn g-btn" href="javascript:openService($!{info.agencyId},0,null);">关闭服务</a>
+                        #elseif($!{info.isOpenService} == 0)
+                            <a class="btn g-btn" href="javascript:toUpdate($!{info.agencyId},1,null);">开通服务</a>
+                        #end
+
+                        #if($!{info.isOfflineChargeOpen} == 0)
+                            <a class="btn g-btn" href="javascript:toUpdate($!{info.agencyId},null,1);">开通线下收费</a>
+                        #elseif($!{info.isOfflineChargeOpen} == 1)
+                            <a class="btn g-btn" href="javascript:openService($!{info.agencyId},null,0);">关闭线下收费</a>
+                        #end
+
+                        <a class="btn g-btn" href="javascript:toCameraList($!{info.agencyId});">摄像头列表</a>
+                    </td>
+                </tr>
+                    #set($i=$i+1)
+                #end
+                #if(!$ps.items||$ps.items.size()==0)
+                <tr>
+                    <td colspan="6">没有记录</td>
+                </tr>
+                #end
+            </tbody>
+        </table>
+
+
+        <!-- 服务开关弹窗 -->
+        <div class="openbg"></div>
+        <div class="openBox2" style="height: 203px">
+            <input id="agencyIdBox" name="agencyIdBox" type="hidden">
+            <input id="isOpenServiceBox" name="isOpenServiceBox" type="hidden">
+            <input id="isOfflineChargeOpenBox" name="isOfflineChargeOpenBox" type="hidden">
+            <div class="openTitle clearfix">
+                <span class="fl" id="title"></span>
+                <span class="close fr" id="close">X</span>
+            </div>
+            <div class="openMain">
+                <p class="sinesList">
+                    <span class="sinesTitle" id="body"></span>
+                </p>
+
+                <div class="openBtn">
+                    <button class="btn b-btn" id="cancle" type="button">取消</button>
+                    <button class="btn b-btn" id="confirm" type="button">确定</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 开通代理商弹窗 -->
+        <div class="openBox3">
+            <form id="insertForm" name="insertForm" >
+
+                <div class="openTitle clearfix">
+                    <span class="fl" id="title">新开通代理商</span>
+                    <span class="close fr" id="close">X</span>
+                </div>
+                <div class="openMain">
+                    <p class="sinesList">
+                        <input type="text" id="agencyAccountId" name="agencyAccount" style="width: 190px;"  maxlength="20" placeholder="请输入代理商账号"/>
+                        <span class="errorStyle"></span>
+                    </p>
+
+                    <div class="openBtn">
+                        <button class="btn b-btn" id="cancleButton" type="button">取消</button>
+                        <button class="btn b-btn" id="openAgency" >开通直播服务</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!--翻页区开始-->
+        <div id="changePage">
+            #VP(10 "queryForm")
+        </div>
+        <!--翻页区结束-->
+    </div>
+</div>
+</body>
+</html>
