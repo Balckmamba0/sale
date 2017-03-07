@@ -15,7 +15,9 @@
     <import resource="applicationContext-datasource.xml"/>
 
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="location" value="classpath:/conf/jdbc.properties" />
+        <property name="locations">
+                <value>classpath:jdbc.properties</value>
+        </property>
     </bean>
 
     <!-- 配置扫描的包 -->
